@@ -61,7 +61,7 @@ def set_background(image_file):
         b64_encoded = base64.b64encode(img_data).decode()
         style = f"""
         <style>
-        /* Твой существующий код фона */
+        /* 1. Фон приложения */
         .stApp {{
             background-image: url("data:image/png;base64,{b64_encoded}");
             background-size: cover;
@@ -69,19 +69,42 @@ def set_background(image_file):
             background-attachment: fixed;
         }}
         
-        /* СКРЫВАЕМ СИСТЕМНЫЕ ЭЛЕМЕНТЫ */
-        #MainMenu {{visibility: hidden;}} /* Меню (три точки) */
-        footer {{visibility: hidden;}}    /* Надпись "Made with Streamlit" */
-        header {{visibility: hidden;}}    /* Верхняя полоска (Share, Deploy и т.д.) */
+        /* 2. Скрываем основные системные элементы (Меню, Хедер, Футер) */
+        #MainMenu {{visibility: hidden;}}
+        header {{visibility: hidden;}}
+        footer {{visibility: hidden;}}
         
-        /* Подложка формы и таблицы */
+        /* 3. Убираем кнопки управления над картинками (Fullscreen) */
+        button[title="View fullscreen"] {{
+            display: none !important;
+        }}
+        
+        /* 4. Убираем панель управления над таблицами (Toolbar: поиск, скачать и т.д.) */
+        [data-testid="stElementToolbar"] {{
+            display: none !important;
+        }}
+        
+        /* 5. Скрываем оверлеи профиля и дополнительные индикаторы внизу */
+        [data-testid="stStatusWidget"] {{
+            visibility: hidden;
+        }}
+        
+        /* 6. Убираем рамки при наведении на ячейки таблицы и другие интерактивные подсветки */
+        .stDataFrame div[data-testid="stTable"] {{
+            pointer-events: none; /* Это сделает таблицу некликабельной (просто для чтения) */
+        }}
+        
+        /* 7. Стилизация форм и таблиц (твои текущие) */
         [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
             background-color: rgba(255, 255, 255, 0.4) !important;
             border-radius: 10px;
             padding: 20px;
+            pointer-events: auto; /* Возвращаем кликабельность для кнопок внутри форм */
         }}
+        
         h1, h2, h3 {{ color: #1a1a1a !important; font-weight: bold; }}
         label, p {{ color: #000000 !important; }}
+        
         </style>
         """
         st.markdown(style, unsafe_allow_html=True)
