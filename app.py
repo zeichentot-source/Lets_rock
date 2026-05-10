@@ -19,11 +19,14 @@ def load_data():
         return pd.DataFrame(columns=["Дата", "Начало", "Конец", "Имя", "Тип", "Сумма"])
 
 def save_data(new_row):
-    existing_data = load_data()
-    updated_df = pd.concat([existing_data, pd.DataFrame([new_row])], ignore_index=True)
-    conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
-    # Эта строка выведет ссылку прямо на сайте после нажатия кнопки
-    st.write(f"Данные отправлены по адресу: {SPREADSHEET_URL}")
+    # Мы будем использовать метод, который просто добавляет строку в конец
+    try:
+        existing_data = load_data()
+        updated_df = pd.concat([existing_data, pd.DataFrame([new_row])], ignore_index=True)
+        # Пробуем обновить через прямое обращение
+        conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+    except Exception as e:
+        st.error(f"Ошибка записи: {e}")
 
 # --- КАЛЬКУЛЯТОР (Твои тарифы) ---
 def calculate_price(is_group, date_obj, start_h, end_h):
