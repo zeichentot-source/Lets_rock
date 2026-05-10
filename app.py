@@ -14,7 +14,7 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # --- ФУНКЦИИ ДАННЫХ ---
 def load_data():
     try:
-        return conn.read(spreadsheet=SPREADSHEET_URL, usecols=[0,1,2,3,4,5])
+        return conn.read()
     except:
         return pd.DataFrame(columns=["Дата", "Начало", "Конец", "Имя", "Тип", "Сумма"])
 
