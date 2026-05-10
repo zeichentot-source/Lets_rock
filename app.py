@@ -6,7 +6,7 @@ import base64
 import os
 
 # --- НАСТРОЙКА ПОДКЛЮЧЕНИЯ ---
-# Вставь сюда свою ссылку!
+# Оставляем переменную для совместимости, но Service Account возьмет данные из Secrets
 SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1mF1K2g8BkuuZdVXFvylMuxTweG7e72cRaG-p0TAEkSc/edit?usp=sharing"
 
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -14,21 +14,25 @@ conn = st.connection("gsheets", type=GSheetsConnection)
 # --- ФУНКЦИИ ДАННЫХ ---
 def load_data():
     try:
-        return conn.read()
+        # ttl=0 критически важен, чтобы сайт видел новые записи мгновенно
+        return conn.read(ttl=0)
     except:
         return pd.DataFrame(columns=["Дата", "Начало", "Конец", "Имя", "Тип", "Сумма"])
 
 def save_data(new_row):
-    # Мы будем использовать метод, который просто добавляет строку в конец
     try:
         existing_data = load_data()
-        updated_df = pd.concat([existing_data, pd.DataFrame([new_row])], ignore_index=True)
-        # Пробуем обновить через прямое обращение
-        conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+        # Создаем DataFrame из новой строки и склеиваем со старыми данными
+        new_df = pd.DataFrame([new_row])
+        updated_df = pd.concat([existing_data, new_df], ignore_index=True)
+        
+        # Обновляем таблицу. С Service Account ссылка в методе обычно не нужна, 
+        # если она прописана в Secrets под ключом spreadsheet
+        conn.update(data=updated_df)
     except Exception as e:
         st.error(f"Ошибка записи: {e}")
 
-# --- КАЛЬКУЛЯТОР (Твои тарифы) ---
+# --- КАЛЬКУЛЯТОР ---
 def calculate_price(is_group, date_obj, start_h, end_h):
     total = 0
     day_of_week = date_obj.weekday()
@@ -63,7 +67,7 @@ def set_background(image_file):
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
-        [data-testid="stForm"], [data-testid="stDataFrame"] {{
+        [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
             background-color: rgba(255, 255, 255, 0.4) !important;
             border-radius: 10px;
             padding: 20px;
@@ -102,19 +106,36 @@ with col_main:
                 st.error("❌ Введите название!")
             else:
                 date_str = date.strftime('%d.%m.%y')
-                # Теперь калькулятор на месте!
-                price = calculate_price(u_type == "Группа", date, start_t, end_t)
                 
-                new_entry = {
-                    "Дата": date_str,
-                    "Начало": f"{start_t}:00",
-                    "Конец": f"{end_t}:00",
-                    "Имя": name,
-                    "Тип": u_type,
-                    "Сумма": f"{price}₽"
-                }
-                save_data(new_entry)
-                st.success(f"Запись подтверждена! Сумма: {price}₽")
+                # Проверка занятости (опционально, но полезно)
+                existing_df = load_data()
+                is_busy = False
+                if not existing_df.empty:
+                    # Простая проверка на пересечение времени в ту же дату
+                    for _, row in existing_df.iterrows():
+                        if row['Дата'] == date_str:
+                            ex_start = int(row['Начало'].split(':')[0])
+                            ex_end = int(row['Конец'].split(':')[0])
+                            if not (end_t <= ex_start or start_t >= ex_end):
+                                is_busy = True
+                                break
+                
+                if is_busy:
+                    st.error("🚫 Это время уже занято!")
+                else:
+                    price = calculate_price(u_type == "Группа", date, start_t, end_t)
+                    new_entry = {
+                        "Дата": date_str,
+                        "Начало": f"{start_t}:00",
+                        "Конец": f"{end_t}:00",
+                        "Имя": name,
+                        "Тип": u_type,
+                        "Сумма": f"{price}₽"
+                    }
+                    save_data(new_entry)
+                    st.success(f"Запись подтверждена! Сумма: {price}₽")
+                    # Перезагружаем приложение, чтобы расписание обновилось мгновенно
+                    st.rerun()
 
 with col_image:
     if os.path.exists("rock.jpg"):
@@ -122,11 +143,21 @@ with col_image:
 
 st.divider()
 
+# --- РАСПИСАНИЕ ---
 st.subheader("Актуальное расписание")
 df = load_data()
-if not df.empty:
-    df['dt_obj'] = pd.to_datetime(df['Дата'], format='%d.%m.%y')
-    df = df.sort_values(by='dt_obj', ascending=False).drop(columns=['dt_obj'])
+
+if df is not None and not df.empty:
+    # Очистка от пустых строк
+    df = df.dropna(how='all')
+    
+    # Сортировка: новые сверху (по дате и по времени начала)
+    try:
+        df['dt_obj'] = pd.to_datetime(df['Дата'], format='%d.%m.%y')
+        df = df.sort_values(by=['dt_obj', 'Начало'], ascending=[False, False]).drop(columns=['dt_obj'])
+    except:
+        pass
+    
     st.dataframe(df, use_container_width=True, hide_index=True)
 else:
     st.info("В таблице пока нет записей.")
