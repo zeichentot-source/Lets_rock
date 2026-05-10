@@ -61,7 +61,7 @@ def set_background(image_file):
         b64_encoded = base64.b64encode(img_data).decode()
         style = f"""
         <style>
-        /* 1. Фон приложения */
+        /* 1. ОБЩИЙ ФОН ПРИЛОЖЕНИЯ */
         .stApp {{
             background-image: url("data:image/png;base64,{b64_encoded}");
             background-size: cover;
@@ -69,7 +69,7 @@ def set_background(image_file):
             background-attachment: fixed;
         }}
         
-        /* 2. Скрытие системных элементов */
+        /* 2. СКРЫТИЕ СИСТЕМНЫХ ЭЛЕМЕНТОВ (ЧИСТЫЙ ИНТЕРФЕЙС) */
         #MainMenu {{visibility: hidden;}}
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
@@ -77,14 +77,14 @@ def set_background(image_file):
         [data-testid="stElementToolbar"] {{ display: none !important; }}
         [data-testid="stStatusWidget"] {{ visibility: hidden; }}
         
-        /* 3. Формы и таблицы */
+        /* 3. ДИЗАЙН ФОРМ И ТАБЛИЦ */
         [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
             background-color: rgba(255, 255, 255, 0.5) !important;
             border-radius: 10px;
             padding: 20px;
         }}
 
-        /* 4. Белые поля ввода */
+        /* 4. БЕЛЫЕ ПОЛЯ И КНОПКИ ДЛЯ МОБИЛОК (ANTI-DARK MODE) */
         input, div[data-baseweb="input"], .stTextInput>div>div>input {{
             background-color: #FFFFFF !important;
             color: #000000 !important;
@@ -96,88 +96,57 @@ def set_background(image_file):
             color: #000000 !important;
         }}
 
-        /* 5. ЧЕРЕПА ВМЕСТО КРУЖКОВ ☠️ */
+        /* 5. КАСТОМНЫЕ ПОЛЗУНКИ С ЧЕРЕПАМИ ☠️ */
         
+        /* Поднимаем заголовки "Начало"/"Конец", чтобы не мешали цифрам */
         [data-testid="stWidgetLabel"] p {{
             margin-bottom: 25px !important;
+            font-size: 18px !important;
         }}
 
+        /* Линия ползунка */
         [data-testid="stTickBar"] {{
-            height: 8px !important;
-            background-color: #444 !important; /* Цвет линии сделаем потемнее */
+            height: 10px !important;
+            border-radius: 5px !important;
+            background-color: rgba(0, 0, 0, 0.2) !important;
         }}
         
-        /* Стилизуем бегунок */
+        /* Область захвата бегунка (делаем стандартный кружок невидимым) */
         div[role="slider"] {{
-            background-color: transparent !important; /* Убираем стандарт
+            width: 35px !important;
+            height: 35px !important;
+            background-color: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            /* Центрируем череп по вертикали относительно линии */
+            margin-top: -12px !important; 
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+        }}
 
-# --- ИНТЕРФЕЙС ---
-st.set_page_config(page_title="Rock Studio", layout="wide")
-set_background("texture.jpg")
-
-st.title("☠️Репетиционная база Let's rock☠️")
-
-col_main, col_image = st.columns([1, 1], gap="large")
-
-with col_main:
-    st.subheader("Записаться")
-    with st.form("booking_form", clear_on_submit=True):
-        u_type = st.radio("Формат:", ["Один человек", "Группа"], horizontal=True)
-        name = st.text_input("Имя / Название группы", placeholder="Введите название")
-        date = st.date_input("Дата репетиции", format="DD.MM.YYYY")
+        /* Рисуем череп ☠️ вместо кружка */
+        div[role="slider"]::after {{
+            content: "☠️" !important;
+            font-size: 32px !important;
+            display: block !important;
+        }}
         
-        c1, c2 = st.columns(2)
-        start_t = c1.select_slider("Начало", options=list(range(9, 24)), value=12)
-        end_t = c2.select_slider("Конец", options=list(range(10, 25)), value=14)
-        
-        submitted = st.form_submit_button("ЗАБРОНИРОВАТЬ", use_container_width=True)
-        
-        if submitted:
-            if end_t <= start_t:
-                st.error("❌ Время конца должно быть позже начала!")
-            elif not name:
-                st.error("❌ Введите название!")
-            else:
-                date_str = date.strftime('%d.%m.%y')
-                
-                # Проверка занятости
-                existing_df = load_data()
-                is_busy = False
-                if not existing_df.empty:
-                    for _, row in existing_df.iterrows():
-                        if row['Дата'] == date_str:
-                            ex_start = int(row['Начало'].split(':')[0])
-                            ex_end = int(row['Конец'].split(':')[0])
-                            if not (end_t <= ex_start or start_t >= ex_end):
-                                is_busy = True
-                                break
-                
-                if is_busy:
-                    st.error("🚫 Это время уже занято!")
-                else:
-                    price = calculate_price(u_type == "Группа", date, start_t, end_t)
-                    new_entry = {
-                        "Дата": date_str,
-                        "Начало": f"{start_t}:00",
-                        "Конец": f"{end_t}:00",
-                        "Имя": name,
-                        "Тип": u_type,
-                        "Сумма": f"{price}₽"
-                    }
-                    save_data(new_entry)
-                    
-                    # ИСПОЛЬЗУЕМ TOAST (он появится в углу и не исчезнет при rerun)
-                    st.toast(f'✅ Запись подтверждена! Сумма: {price}₽', icon='🤘')
-                    
-                    # Или используем небольшой фокус с задержкой, если хочешь именно большую зеленую плашку:
-                    import time
-                    st.success(f"Запись подтверждена! Сумма: {price}₽")
-                    time.sleep(2) # Даем пользователю 2 секунды почитать, прежде чем сайт моргнет
-                    st.rerun()
+        /* Блокируем скролл страницы при движении черепа */
+        [data-testid="stSlider"] {{
+            touch-action: none !important;
+            padding-bottom: 20px !important;
+        }}
 
-with col_image:
-    if os.path.exists("rock.jpg"):
-        st.image("rock.jpg", use_container_width=True)
+        /* 6. ТЕКСТ И ШРИФТЫ */
+        h1, h2, h3, label, p {{ 
+            color: #1a1a1a !important; 
+            font-weight: bold !important; 
+        }}
+        </style>
+        """
+        st.markdown(style, unsafe_allow_html=True)
 
 st.divider()
 
