@@ -165,7 +165,8 @@ with col_main:
             elif not name:
                 st.error("❌ Введите название!")
             else:
-                date_str = date.strftime('%d.%m.%y')
+                days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+date_str = f"{date.strftime('%d.%m.%y')} ({days[date.weekday()]})"
                 
                 # Проверка занятости времени
                 existing_df = load_data()
