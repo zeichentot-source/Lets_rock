@@ -165,8 +165,20 @@ with col_main:
             elif not name:
                 st.error("❌ Введите название!")
             else:
-                days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
-                date_str = f"{date.strftime('%d.%m.%y')} ({days[date.weekday()]})"
+                date_str = date.strftime('%d.%m.%y')
+                
+                # Вот здесь была ошибка — проверь отступ этой строки:
+                existing_df = load_data()
+                
+                is_busy = False
+                if not existing_df.empty:
+                    for _, row in existing_df.iterrows():
+                        if row['Дата'] == date_str:
+                            ex_start = int(row['Начало'].split(':')[0])
+                            ex_end = int(row['Конец'].split(':')[0])
+                            if not (end_t <= ex_start or start_t >= ex_end):
+                                is_busy = True
+                                break
                 
                 # Проверка занятости времени
                 existing_df = load_data()
