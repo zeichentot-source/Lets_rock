@@ -61,50 +61,37 @@ def set_background(image_file):
         b64_encoded = base64.b64encode(img_data).decode()
         style = f"""
         <style>
-        /* 1. Фон приложения */
         .stApp {{
             background-image: url("data:image/png;base64,{b64_encoded}");
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
-        
-        /* 2. Скрываем основные системные элементы (Меню, Хедер, Футер) */
         #MainMenu {{visibility: hidden;}}
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
+        button[title="View fullscreen"] {{ display: none !important; }}
+        [data-testid="stElementToolbar"] {{ display: none !important; }}
         
-        /* 3. Убираем кнопки управления над картинками (Fullscreen) */
-        button[title="View fullscreen"] {{
-            display: none !important;
-        }}
-        
-        /* 4. Убираем панель управления над таблицами (Toolbar: поиск, скачать и т.д.) */
-        [data-testid="stElementToolbar"] {{
-            display: none !important;
-        }}
-        
-        /* 5. Скрываем оверлеи профиля и дополнительные индикаторы внизу */
-        [data-testid="stStatusWidget"] {{
-            visibility: hidden;
-        }}
-        
-        /* 6. Убираем рамки при наведении на ячейки таблицы и другие интерактивные подсветки */
-        .stDataFrame div[data-testid="stTable"] {{
-            pointer-events: none; /* Это сделает таблицу некликабельной (просто для чтения) */
-        }}
-        
-        /* 7. Стилизация форм и таблиц (твои текущие) */
         [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
-            background-color: rgba(255, 255, 255, 0.4) !important;
+            background-color: rgba(255, 255, 255, 0.5) !important;
             border-radius: 10px;
             padding: 20px;
-            pointer-events: auto; /* Возвращаем кликабельность для кнопок внутри форм */
+        }}
+
+        /* Белые поля для мобилок */
+        input, div[data-baseweb="input"], .stTextInput>div>div>input {{
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
         }}
         
-        h1, h2, h3 {{ color: #1a1a1a !important; font-weight: bold; }}
-        label, p {{ color: #000000 !important; }}
-        
+        button {{
+            background-color: #FFFFFF !important;
+            color: #000000 !important;
+        }}
+
+        h1, h2, h3, label, p {{ color: #1a1a1a !important; font-weight: bold; }}
         </style>
         """
         st.markdown(style, unsafe_allow_html=True)
