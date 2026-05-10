@@ -92,6 +92,34 @@ def set_background(image_file):
         }}
 
         h1, h2, h3, label, p {{ color: #1a1a1a !important; font-weight: bold; }}
+        /* УВЕЛИЧИВАЕМ ПОЛЗУНОК ДЛЯ МОБИЛОК */
+        
+        /* 1. Делаем саму линию (трек) толще */
+        [data-testid="stTickBar"] {
+            height: 12px !important;
+        }
+        
+        /* 2. Делаем круглый бегунок (handle) намного больше */
+        [data-testid="stSlider"] div[role="slider"] {
+            width: 35px !important;
+            height: 35px !important;
+            background-color: #1a1a1a !important; /* Цвет бегунка */
+            border: 3px solid #ffffff !important;
+            top: -12px !important; /* Выравниваем по центру линии */
+        }
+        
+        /* 3. Увеличиваем шрифт цифр над ползунком */
+        [data-testid="stSlider"] div[data-testid="stMarkdownContainer"] p {
+            font-size: 18px !important;
+            font-weight: bold !important;
+        }
+
+        /* 4. Предотвращаем "дребезг" при скролле (экспериментально) */
+        [data-testid="stSlider"] {
+            padding-top: 25px !important;
+            padding-bottom: 25px !important;
+            touch-action: none; /* Запрещает браузеру скроллить страницу, пока палец на ползунке */
+        }
         </style>
         """
         st.markdown(style, unsafe_allow_html=True)
