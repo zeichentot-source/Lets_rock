@@ -61,12 +61,20 @@ def set_background(image_file):
         b64_encoded = base64.b64encode(img_data).decode()
         style = f"""
         <style>
+        /* Твой существующий код фона */
         .stApp {{
             background-image: url("data:image/png;base64,{b64_encoded}");
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
+        
+        /* СКРЫВАЕМ СИСТЕМНЫЕ ЭЛЕМЕНТЫ */
+        #MainMenu {{visibility: hidden;}} /* Меню (три точки) */
+        footer {{visibility: hidden;}}    /* Надпись "Made with Streamlit" */
+        header {{visibility: hidden;}}    /* Верхняя полоска (Share, Deploy и т.д.) */
+        
+        /* Подложка формы и таблицы */
         [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
             background-color: rgba(255, 255, 255, 0.4) !important;
             border-radius: 10px;
