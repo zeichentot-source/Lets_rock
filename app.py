@@ -61,25 +61,30 @@ def set_background(image_file):
         b64_encoded = base64.b64encode(img_data).decode()
         style = f"""
         <style>
+        /* 1. Фон приложения */
         .stApp {{
             background-image: url("data:image/png;base64,{b64_encoded}");
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
         }}
+        
+        /* 2. Скрытие системных элементов */
         #MainMenu {{visibility: hidden;}}
         header {{visibility: hidden;}}
         footer {{visibility: hidden;}}
         button[title="View fullscreen"] {{ display: none !important; }}
         [data-testid="stElementToolbar"] {{ display: none !important; }}
+        [data-testid="stStatusWidget"] {{ visibility: hidden; }}
         
+        /* 3. Формы и таблицы */
         [data-testid="stForm"], [data-testid="stDataFrame"], [data-testid="stTable"] {{
             background-color: rgba(255, 255, 255, 0.5) !important;
             border-radius: 10px;
             padding: 20px;
         }}
 
-        /* Белые поля для мобилок */
+        /* 4. Белые поля для мобильных устройств */
         input, div[data-baseweb="input"], .stTextInput>div>div>input {{
             background-color: #FFFFFF !important;
             color: #000000 !important;
@@ -91,35 +96,29 @@ def set_background(image_file):
             color: #000000 !important;
         }}
 
-        h1, h2, h3, label, p {{ color: #1a1a1a !important; font-weight: bold; }}
-        /* УВЕЛИЧИВАЕМ ПОЛЗУНОК ДЛЯ МОБИЛОК */
-        
-        /* 1. Делаем саму линию (трек) толще */
-        [data-testid="stTickBar"] {
+        /* 5. ЖИРНЫЕ ПОЛЗУНКИ ДЛЯ ПАЛЬЦЕВ */
+        /* Линия ползунка */
+        [data-testid="stTickBar"] {{
             height: 12px !important;
-        }
+        }}
         
-        /* 2. Делаем круглый бегунок (handle) намного больше */
-        [data-testid="stSlider"] div[role="slider"] {
-            width: 35px !important;
-            height: 35px !important;
-            background-color: #1a1a1a !important; /* Цвет бегунка */
+        /* Сам бегунок (кружок) */
+        div[role="slider"] {{
+            width: 30px !important;
+            height: 30px !important;
+            background-color: #1a1a1a !important;
             border: 3px solid #ffffff !important;
-            top: -12px !important; /* Выравниваем по центру линии */
-        }
+            top: -10px !important;
+        }}
         
-        /* 3. Увеличиваем шрифт цифр над ползунком */
-        [data-testid="stSlider"] div[data-testid="stMarkdownContainer"] p {
-            font-size: 18px !important;
-            font-weight: bold !important;
-        }
+        /* Область ползунка (отключаем скролл страницы при касании) */
+        [data-testid="stSlider"] {{
+            touch-action: none !important;
+            padding-top: 20px !important;
+            padding-bottom: 20px !important;
+        }}
 
-        /* 4. Предотвращаем "дребезг" при скролле (экспериментально) */
-        [data-testid="stSlider"] {
-            padding-top: 25px !important;
-            padding-bottom: 25px !important;
-            touch-action: none; /* Запрещает браузеру скроллить страницу, пока палец на ползунке */
-        }
+        h1, h2, h3, label, p {{ color: #1a1a1a !important; font-weight: bold; }}
         </style>
         """
         st.markdown(style, unsafe_allow_html=True)
