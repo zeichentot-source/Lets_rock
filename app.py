@@ -142,7 +142,7 @@ def set_background(image_file):
 st.set_page_config(page_title="Rock Studio ☠️", layout="wide")
 set_background("texture.jpg")
 
-st.title("☠️Репетиционная база Let's rock☠️")
+st.title("Репетиционная база Let's rock")
 
 col_main, col_image = st.columns([1, 1], gap="large")
 
