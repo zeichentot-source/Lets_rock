@@ -84,7 +84,7 @@ def set_background(image_file):
             padding: 20px;
         }}
 
-        /* 4. Белые поля для мобильных устройств */
+        /* 4. Белые поля ввода */
         input, div[data-baseweb="input"], .stTextInput>div>div>input {{
             background-color: #FFFFFF !important;
             color: #000000 !important;
@@ -96,29 +96,43 @@ def set_background(image_file):
             color: #000000 !important;
         }}
 
-        /* 5. ЖИРНЫЕ ПОЛЗУНКИ ДЛЯ ПАЛЬЦЕВ */
-        /* Линия ползунка */
-        [data-testid="stTickBar"] {{
-            height: 12px !important;
-        }}
+        /* 5. НАСТРОЙКА ПОЛЗУНКОВ И ТЕКСТА */
         
-        /* Сам бегунок (кружок) */
-        div[role="slider"] {{
-            width: 30px !important;
-            height: 30px !important;
-            background-color: #1a1a1a !important;
-            border: 3px solid #ffffff !important;
-            top: -10px !important;
-        }}
-        
-        /* Область ползунка (отключаем скролл страницы при касании) */
-        [data-testid="stSlider"] {{
-            touch-action: none !important;
-            padding-top: 20px !important;
-            padding-bottom: 20px !important;
+        /* Поднимаем заголовки "Начало" и "Конец" выше */
+        [data-testid="stWidgetLabel"] p {{
+            margin-bottom: 15px !important;
+            padding-bottom: 5px !important;
         }}
 
-        h1, h2, h3, label, p {{ color: #1a1a1a !important; font-weight: bold; }}
+        /* Линия ползунка (делаем чуть толще для вида) */
+        [data-testid="stTickBar"] {{
+            height: 10px !important;
+        }}
+        
+        /* Центрирование бегунка по оси */
+        div[role="slider"] {{
+            width: 32px !important;
+            height: 32px !important;
+            background-color: #1a1a1a !important;
+            border: 3px solid #ffffff !important;
+            /* Выравнивание строго по центру линии */
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.3);
+        }}
+        
+        /* Область ползунка: блокировка скролла и отступы */
+        [data-testid="stSlider"] {{
+            touch-action: none !important;
+            padding-top: 10px !important;
+            padding-bottom: 25px !important;
+        }}
+
+        /* Шрифт заголовков и текста */
+        h1, h2, h3, label, p {{ 
+            color: #1a1a1a !important; 
+            font-weight: bold !important; 
+        }}
         </style>
         """
         st.markdown(style, unsafe_allow_html=True)
