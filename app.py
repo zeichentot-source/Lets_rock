@@ -125,11 +125,10 @@ with col_main:
             else:
                 date_str = date.strftime('%d.%m.%y')
                 
-                # Проверка занятости (опционально, но полезно)
+                # Проверка занятости
                 existing_df = load_data()
                 is_busy = False
                 if not existing_df.empty:
-                    # Простая проверка на пересечение времени в ту же дату
                     for _, row in existing_df.iterrows():
                         if row['Дата'] == date_str:
                             ex_start = int(row['Начало'].split(':')[0])
@@ -151,8 +150,14 @@ with col_main:
                         "Сумма": f"{price}₽"
                     }
                     save_data(new_entry)
+                    
+                    # ИСПОЛЬЗУЕМ TOAST (он появится в углу и не исчезнет при rerun)
+                    st.toast(f'✅ Запись подтверждена! Сумма: {price}₽', icon='🤘')
+                    
+                    # Или используем небольшой фокус с задержкой, если хочешь именно большую зеленую плашку:
+                    import time
                     st.success(f"Запись подтверждена! Сумма: {price}₽")
-                    # Перезагружаем приложение, чтобы расписание обновилось мгновенно
+                    time.sleep(2) # Даем пользователю 2 секунды почитать, прежде чем сайт моргнет
                     st.rerun()
 
 with col_image:
