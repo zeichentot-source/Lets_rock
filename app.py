@@ -96,39 +96,38 @@ def set_background(image_file):
             color: #000000 !important;
         }}
 
-        /* 5. НАСТРОЙКА ПОЛЗУНКОВ И ТЕКСТА */
+        /* 5. НАСТРОЙКА ПОЛЗУНКОВ (БЕЗ КОНФЛИКТОВ) */
         
-        /* Поднимаем заголовки "Начало" и "Конец" выше */
+        /* Поднимаем текст "Начало"/"Конец", чтобы не мешал цифрам */
         [data-testid="stWidgetLabel"] p {{
-            margin-bottom: 15px !important;
-            padding-bottom: 5px !important;
+            margin-bottom: 25px !important;
         }}
 
-        /* Линия ползунка (делаем чуть толще для вида) */
+        /* Линия ползунка */
         [data-testid="stTickBar"] {{
             height: 10px !important;
+            border-radius: 5px !important;
         }}
         
-        /* Центрирование бегунка по оси */
+        /* Бегунок (кружок) - используем margin вместо transform */
         div[role="slider"] {{
             width: 32px !important;
             height: 32px !important;
             background-color: #1a1a1a !important;
             border: 3px solid #ffffff !important;
-            /* Выравнивание строго по центру линии */
-            top: 50% !important;
-            transform: translateY(-50%) !important;
-            box-shadow: 0px 2px 5px rgba(0,0,0,0.3);
+            /* Смещаем вверх на половину разницы высоты линии и кружка */
+            margin-top: -11px !important; 
+            box-shadow: 0px 2px 5px rgba(0,0,0,0.4);
+            cursor: pointer !important;
         }}
         
-        /* Область ползунка: блокировка скролла и отступы */
+        /* Область ползунка: блокировка скролла страницы */
         [data-testid="stSlider"] {{
             touch-action: none !important;
-            padding-top: 10px !important;
-            padding-bottom: 25px !important;
+            padding-bottom: 20px !important;
         }}
 
-        /* Шрифт заголовков и текста */
+        /* Общий шрифт */
         h1, h2, h3, label, p {{ 
             color: #1a1a1a !important; 
             font-weight: bold !important; 
