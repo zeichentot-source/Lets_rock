@@ -96,45 +96,20 @@ def set_background(image_file):
             color: #000000 !important;
         }}
 
-        /* 5. НАСТРОЙКА ПОЛЗУНКОВ (БЕЗ КОНФЛИКТОВ) */
+        /* 5. ЧЕРЕПА ВМЕСТО КРУЖКОВ ☠️ */
         
-        /* Поднимаем текст "Начало"/"Конец", чтобы не мешал цифрам */
         [data-testid="stWidgetLabel"] p {{
             margin-bottom: 25px !important;
         }}
 
-        /* Линия ползунка */
         [data-testid="stTickBar"] {{
-            height: 10px !important;
-            border-radius: 5px !important;
+            height: 8px !important;
+            background-color: #444 !important; /* Цвет линии сделаем потемнее */
         }}
         
-        /* Бегунок (кружок) - используем margin вместо transform */
+        /* Стилизуем бегунок */
         div[role="slider"] {{
-            width: 32px !important;
-            height: 32px !important;
-            background-color: #1a1a1a !important;
-            border: 3px solid #ffffff !important;
-            /* Смещаем вверх на половину разницы высоты линии и кружка */
-            margin-top: -11px !important; 
-            box-shadow: 0px 2px 5px rgba(0,0,0,0.4);
-            cursor: pointer !important;
-        }}
-        
-        /* Область ползунка: блокировка скролла страницы */
-        [data-testid="stSlider"] {{
-            touch-action: none !important;
-            padding-bottom: 20px !important;
-        }}
-
-        /* Общий шрифт */
-        h1, h2, h3, label, p {{ 
-            color: #1a1a1a !important; 
-            font-weight: bold !important; 
-        }}
-        </style>
-        """
-        st.markdown(style, unsafe_allow_html=True)
+            background-color: transparent !important; /* Убираем стандарт
 
 # --- ИНТЕРФЕЙС ---
 st.set_page_config(page_title="Rock Studio", layout="wide")
