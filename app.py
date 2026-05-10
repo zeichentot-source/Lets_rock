@@ -1,28 +1,31 @@
 import streamlit as st
-import json
-import os
+from streamlit_gsheets import GSheetsConnection
 import pandas as pd
 from datetime import datetime
 import base64
+import os
 
-DATA_FILE = 'bookings_web.json'
+# --- НАСТРОЙКА ПОДКЛЮЧЕНИЯ ---
+# Вставь сюда свою ссылку!
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1mF1K2g8BkuuZdVXFvylMuxTweG7e72cRaG-p0TAEkSc/edit?usp=sharing"
+
+conn = st.connection("gsheets", type=GSheetsConnection)
 
 # --- ФУНКЦИИ ДАННЫХ ---
 def load_data():
-    if os.path.exists(DATA_FILE):
-        try:
-            with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except: return []
-    return []
+    try:
+        return conn.read(spreadsheet=SPREADSHEET_URL, usecols=[0,1,2,3,4,5])
+    except:
+        return pd.DataFrame(columns=["Дата", "Начало", "Конец", "Имя", "Тип", "Сумма"])
 
-def save_data(entry):
-    data = load_data()
-    data.append(entry)
-    with open(DATA_FILE, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
+def save_data(new_row):
+    existing_data = load_data()
+    updated_df = pd.concat([existing_data, pd.DataFrame([new_row])], ignore_index=True)
+    conn.update(spreadsheet=SPREADSHEET_URL, data=updated_df)
+    # Эта строка выведет ссылку прямо на сайте после нажатия кнопки
+    st.write(f"Данные отправлены по адресу: {SPREADSHEET_URL}")
 
-# --- КАЛЬКУЛЯТОР ---
+# --- КАЛЬКУЛЯТОР (Твои тарифы) ---
 def calculate_price(is_group, date_obj, start_h, end_h):
     total = 0
     day_of_week = date_obj.weekday()
@@ -45,40 +48,34 @@ def calculate_price(is_group, date_obj, start_h, end_h):
 
 # --- ФОН И СТИЛИ ---
 def set_background(image_file):
-    with open(image_file, "rb") as f:
-        img_data = f.read()
-    b64_encoded = base64.b64encode(img_data).decode()
-    style = f"""
-    <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{b64_encoded}");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-    }}
-    [data-testid="stForm"], .stTable, [data-testid="stDataFrame"] {{
-        background-color: rgba(255, 255, 255, 0.4) !important;
-        border-radius: 10px;
-        padding: 20px;
-    }}
-    h1, h2, h3 {{
-        color: #1a1a1a !important;
-        font-weight: bold;
-    }}
-    label, p, .stMarkdown {{
-        color: #000000 !important;
-    }}
-    </style>
-    """
-    st.markdown(style, unsafe_allow_html=True)
+    if os.path.exists(image_file):
+        with open(image_file, "rb") as f:
+            img_data = f.read()
+        b64_encoded = base64.b64encode(img_data).decode()
+        style = f"""
+        <style>
+        .stApp {{
+            background-image: url("data:image/png;base64,{b64_encoded}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }}
+        [data-testid="stForm"], [data-testid="stDataFrame"] {{
+            background-color: rgba(255, 255, 255, 0.4) !important;
+            border-radius: 10px;
+            padding: 20px;
+        }}
+        h1, h2, h3 {{ color: #1a1a1a !important; font-weight: bold; }}
+        label, p {{ color: #000000 !important; }}
+        </style>
+        """
+        st.markdown(style, unsafe_allow_html=True)
 
-# --- ИНИЦИАЛИЗАЦИЯ ---
+# --- ИНТЕРФЕЙС ---
 st.set_page_config(page_title="Rock Studio", layout="wide")
+set_background("texture.jpg")
 
-if os.path.exists("texture.jpg"):
-    set_background("texture.jpg")
-
-st.title("Репетиционная база Let's rock")
+st.title("Rock Studio: Система бронирования")
 
 col_main, col_image = st.columns([1, 1], gap="large")
 
@@ -101,49 +98,32 @@ with col_main:
             elif not name:
                 st.error("❌ Введите название!")
             else:
-                existing = load_data()
-                date_str = date.strftime('%d.%m.%y') 
-                is_busy = any(b['date'] == date_str and not (end_t <= b['start'] or start_t >= b['end']) for b in existing)
+                date_str = date.strftime('%d.%m.%y')
+                # Теперь калькулятор на месте!
+                price = calculate_price(u_type == "Группа", date, start_t, end_t)
                 
-                if is_busy:
-                    st.error("🚫 Это время уже занято!")
-                else:
-                    price = calculate_price(u_type == "Группа", date, start_t, end_t)
-                    save_data({
-                        "Дата": date_str, 
-                        "Начало": f"{start_t}:00", 
-                        "Конец": f"{end_t}:00", 
-                        "Имя": name, 
-                        "Сумма": f"{price}₽", 
-                        "Тип": u_type, 
-                        "start": start_t, 
-                        "end": end_t, 
-                        "date": date_str
-                    })
-                    st.success(f"Запись подтверждена. Стоимость: {price}₽")
+                new_entry = {
+                    "Дата": date_str,
+                    "Начало": f"{start_t}:00",
+                    "Конец": f"{end_t}:00",
+                    "Имя": name,
+                    "Тип": u_type,
+                    "Сумма": f"{price}₽"
+                }
+                save_data(new_entry)
+                st.success(f"Запись подтверждена! Сумма: {price}₽")
 
 with col_image:
-    st.write("##") 
     if os.path.exists("rock.jpg"):
         st.image("rock.jpg", use_container_width=True)
 
 st.divider()
 
-# --- РАСПИСАНИЕ (С НОВЫМИ ЗАПИСЯМИ ВЕРХУ) ---
 st.subheader("Актуальное расписание")
-bookings = load_data()
-if bookings:
-    df = pd.DataFrame(bookings)
-    df['sort_date'] = pd.to_datetime(df['date'], format='%d.%m.%y')
-    
-    # ИСПРАВЛЕНО: Сортировка по убыванию (ascending=False)
-    # Теперь новые даты и более позднее время будут сверху
-    df = df.sort_values(by=['sort_date', 'start'], ascending=False)
-    
-    st.dataframe(
-        df[["Дата", "Начало", "Конец", "Имя", "Тип", "Сумма"]], 
-        use_container_width=True, 
-        hide_index=True
-    )
+df = load_data()
+if not df.empty:
+    df['dt_obj'] = pd.to_datetime(df['Дата'], format='%d.%m.%y')
+    df = df.sort_values(by='dt_obj', ascending=False).drop(columns=['dt_obj'])
+    st.dataframe(df, use_container_width=True, hide_index=True)
 else:
-    st.info("Пока записей нет.")
+    st.info("В таблице пока нет записей.")
